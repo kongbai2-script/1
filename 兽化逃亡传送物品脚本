@@ -1,0 +1,568 @@
+-- ========== 兽化逃亡物品传送 | 空白制作 ==========
+
+local player = game.Players.LocalPlayer
+local mapFolder = workspace:FindFirstChild("Map")
+
+while not mapFolder do
+    task.wait(1)
+    mapFolder = workspace:FindFirstChild("Map")
+end
+
+local playerGui = player:FindFirstChildWhichIsA("PlayerGui")
+if not playerGui then
+    playerGui = Instance.new("ScreenGui")
+    playerGui.Parent = player
+end
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ToolSelector"
+screenGui.Parent = playerGui
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 340, 0, 480)
+mainFrame.Position = UDim2.new(0.5, -170, 0.5, -240)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+mainFrame.BorderSizePixel = 0
+mainFrame.BackgroundTransparency = 0.05
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 8)
+uiCorner.Parent = mainFrame
+
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1, 0, 0, 40)
+titleBar.Position = UDim2.new(0, 0, 0, 0)
+titleBar.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+titleBar.BackgroundTransparency = 0
+titleBar.BorderSizePixel = 0
+titleBar.Parent = mainFrame
+
+local titleBarCorner = Instance.new("UICorner")
+titleBarCorner.CornerRadius = UDim.new(0, 8)
+titleBarCorner.Parent = titleBar
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -40, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "兽化逃亡物品传送 | 空白"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 15
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = titleBar
+
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -35, 0, 5)
+closeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+closeBtn.Text = "✕"
+closeBtn.TextColor3 = Color3.new(1, 1, 1)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 16
+closeBtn.Parent = titleBar
+
+local closeBtnCorner = Instance.new("UICorner")
+closeBtnCorner.CornerRadius = UDim.new(0, 4)
+closeBtnCorner.Parent = closeBtn
+
+closeBtn.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+local minBtn = Instance.new("TextButton")
+minBtn.Size = UDim2.new(0, 30, 0, 30)
+minBtn.Position = UDim2.new(1, -70, 0, 5)
+minBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+minBtn.Text = "─"
+minBtn.TextColor3 = Color3.new(1, 1, 1)
+minBtn.Font = Enum.Font.GothamBold
+minBtn.TextSize = 16
+minBtn.Parent = titleBar
+
+local minBtnCorner = Instance.new("UICorner")
+minBtnCorner.CornerRadius = UDim.new(0, 4)
+minBtnCorner.Parent = minBtn
+
+local isMinimized = false
+local contentFrame = Instance.new("Frame")
+contentFrame.Size = UDim2.new(1, 0, 1, -40)
+contentFrame.Position = UDim2.new(0, 0, 0, 40)
+contentFrame.BackgroundTransparency = 1
+contentFrame.Parent = mainFrame
+
+minBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        mainFrame.Size = UDim2.new(0, 340, 0, 40)
+        contentFrame.Visible = false
+        minBtn.Text = "□"
+    else
+        mainFrame.Size = UDim2.new(0, 340, 0, 480)
+        contentFrame.Visible = true
+        minBtn.Text = "─"
+    end
+end)
+
+local scrollFrame = Instance.new("ScrollingFrame")
+scrollFrame.Size = UDim2.new(1, -10, 0, 240)
+scrollFrame.Position = UDim2.new(0, 5, 0, 5)
+scrollFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+scrollFrame.BorderSizePixel = 0
+scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+scrollFrame.ScrollBarThickness = 6
+scrollFrame.Parent = contentFrame
+
+local scrollCorner = Instance.new("UICorner")
+scrollCorner.CornerRadius = UDim.new(0, 6)
+scrollCorner.Parent = scrollFrame
+
+local listLayout = Instance.new("UIListLayout")
+listLayout.Parent = scrollFrame
+listLayout.SortOrder = Enum.SortOrder.Name
+listLayout.Padding = UDim.new(0, 5)
+
+local amountFrame = Instance.new("Frame")
+amountFrame.Size = UDim2.new(1, -10, 0, 40)
+amountFrame.Position = UDim2.new(0, 5, 0, 255)
+amountFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+amountFrame.Parent = contentFrame
+
+local amountCorner = Instance.new("UICorner")
+amountCorner.CornerRadius = UDim.new(0, 6)
+amountCorner.Parent = amountFrame
+
+local amountLabel = Instance.new("TextLabel")
+amountLabel.Size = UDim2.new(0, 45, 1, 0)
+amountLabel.Position = UDim2.new(0, 8, 0, 0)
+amountLabel.BackgroundTransparency = 1
+amountLabel.Text = "数量:"
+amountLabel.TextColor3 = Color3.new(1, 1, 1)
+amountLabel.Font = Enum.Font.Gotham
+amountLabel.TextSize = 14
+amountLabel.TextXAlignment = Enum.TextXAlignment.Left
+amountLabel.Parent = amountFrame
+
+local amountInput = Instance.new("TextBox")
+amountInput.Size = UDim2.new(0, 70, 0, 28)
+amountInput.Position = UDim2.new(0, 55, 0, 6)
+amountInput.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+amountInput.Text = "全部"
+amountInput.TextColor3 = Color3.new(1, 1, 1)
+amountInput.Font = Enum.Font.Gotham
+amountInput.TextSize = 14
+amountInput.Parent = amountFrame
+
+local amountInputCorner = Instance.new("UICorner")
+amountInputCorner.CornerRadius = UDim.new(0, 4)
+amountInputCorner.Parent = amountInput
+
+local optionsFrame = Instance.new("Frame")
+optionsFrame.Size = UDim2.new(1, -10, 0, 35)
+optionsFrame.Position = UDim2.new(0, 5, 0, 303)
+optionsFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+optionsFrame.Parent = contentFrame
+
+local optionsCorner = Instance.new("UICorner")
+optionsCorner.CornerRadius = UDim.new(0, 6)
+optionsCorner.Parent = optionsFrame
+
+local refreshToggleBtn = Instance.new("TextButton")
+refreshToggleBtn.Size = UDim2.new(0, 130, 0, 25)
+refreshToggleBtn.Position = UDim2.new(0.5, -65, 0, 5)
+refreshToggleBtn.BackgroundColor3 = Color3.fromRGB(34, 139, 34)
+refreshToggleBtn.Text = "实时刷新: ✅"
+refreshToggleBtn.TextColor3 = Color3.new(1, 1, 1)
+refreshToggleBtn.Font = Enum.Font.Gotham
+refreshToggleBtn.TextSize = 12
+refreshToggleBtn.Parent = optionsFrame
+
+local refreshToggleCorner = Instance.new("UICorner")
+refreshToggleCorner.CornerRadius = UDim.new(0, 4)
+refreshToggleCorner.Parent = refreshToggleBtn
+
+local autoRefreshEnabled = true
+local refreshLoopConnection = nil
+
+refreshToggleBtn.MouseButton1Click:Connect(function()
+    autoRefreshEnabled = not autoRefreshEnabled
+    if autoRefreshEnabled then
+        refreshToggleBtn.BackgroundColor3 = Color3.fromRGB(34, 139, 34)
+        refreshToggleBtn.Text = "实时刷新: ✅"
+        statusLabel.Text = "实时刷新已开启"
+        startRefreshLoop()
+    else
+        refreshToggleBtn.BackgroundColor3 = Color3.fromRGB(139, 34, 34)
+        refreshToggleBtn.Text = "实时刷新: ❌"
+        statusLabel.Text = "实时刷新已关闭"
+        if refreshLoopConnection then
+            task.cancel(refreshLoopConnection)
+            refreshLoopConnection = nil
+        end
+    end
+end)
+
+local buttonFrame = Instance.new("Frame")
+buttonFrame.Size = UDim2.new(1, -10, 0, 70)
+buttonFrame.Position = UDim2.new(0, 5, 1, -80)
+buttonFrame.BackgroundTransparency = 1
+buttonFrame.Parent = contentFrame
+
+local refreshBtn = Instance.new("TextButton")
+refreshBtn.Size = UDim2.new(0, 95, 0, 30)
+refreshBtn.Position = UDim2.new(0, 0, 0, 0)
+refreshBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+refreshBtn.Text = "手动刷新"
+refreshBtn.TextColor3 = Color3.new(1, 1, 1)
+refreshBtn.Font = Enum.Font.Gotham
+refreshBtn.TextSize = 14
+refreshBtn.Parent = buttonFrame
+
+local refreshCorner = Instance.new("UICorner")
+refreshCorner.CornerRadius = UDim.new(0, 4)
+refreshCorner.Parent = refreshBtn
+
+local teleportBtn = Instance.new("TextButton")
+teleportBtn.Size = UDim2.new(0, 120, 0, 30)
+teleportBtn.Position = UDim2.new(0, 105, 0, 0)
+teleportBtn.BackgroundColor3 = Color3.fromRGB(34, 139, 34)
+teleportBtn.Text = "传送选中至脸上"
+teleportBtn.TextColor3 = Color3.new(1, 1, 1)
+teleportBtn.Font = Enum.Font.GothamBold
+teleportBtn.TextSize = 12
+teleportBtn.Parent = buttonFrame
+
+local teleportCorner = Instance.new("UICorner")
+teleportCorner.CornerRadius = UDim.new(0, 4)
+teleportCorner.Parent = teleportBtn
+
+local teleportAllBtn = Instance.new("TextButton")
+teleportAllBtn.Size = UDim2.new(0, 130, 0, 30)
+teleportAllBtn.Position = UDim2.new(0.5, -65, 0, 35)
+teleportAllBtn.BackgroundColor3 = Color3.fromRGB(220, 100, 50)
+teleportAllBtn.Text = "一键传送所有"
+teleportAllBtn.TextColor3 = Color3.new(1, 1, 1)
+teleportAllBtn.Font = Enum.Font.GothamBold
+teleportAllBtn.TextSize = 12
+teleportAllBtn.Parent = buttonFrame
+
+local teleportAllCorner = Instance.new("UICorner")
+teleportAllCorner.CornerRadius = UDim.new(0, 4)
+teleportAllCorner.Parent = teleportAllBtn
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(1, -10, 0, 25)
+statusLabel.Position = UDim2.new(0, 5, 1, -25)
+statusLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+statusLabel.Text = "正在检测物品..."
+statusLabel.TextColor3 = Color3.new(1, 1, 0.8)
+statusLabel.Font = Enum.Font.Gotham
+statusLabel.TextSize = 12
+statusLabel.Parent = contentFrame
+
+local statusCorner = Instance.new("UICorner")
+statusCorner.CornerRadius = UDim.new(0, 4)
+statusCorner.Parent = statusLabel
+
+local function makeDraggable(frame, dragHandle)
+    local dragging = false
+    local dragStart = Vector2.new()
+    local startPos = UDim2.new()
+    
+    dragHandle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+        end
+    end)
+    
+    dragHandle.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    
+    dragHandle.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+end
+
+makeDraggable(mainFrame, titleBar)
+
+local toolTypes = {}
+local toolList = {}
+local buttons = {}
+local selectedType = nil
+
+function refreshToolList()
+    mapFolder = workspace:FindFirstChild("Map")
+    if not mapFolder then
+        if autoRefreshEnabled then
+            statusLabel.Text = "等待 workspace.Map 出现..."
+        end
+        return false
+    end
+    
+    if autoRefreshEnabled then
+        statusLabel.Text = "正在扫描物品..."
+    end
+    
+    local previousSelected = selectedType
+    
+    toolTypes = {}
+    toolList = {}
+    
+    for _, item in pairs(mapFolder:GetDescendants()) do
+        if item:IsA("Tool") then
+            local toolName = item.Name
+            if not toolTypes[toolName] then
+                toolTypes[toolName] = true
+                toolList[toolName] = {}
+            end
+            table.insert(toolList[toolName], item)
+        end
+    end
+    
+    local typeNames = {}
+    for name in pairs(toolTypes) do
+        table.insert(typeNames, name)
+    end
+    table.sort(typeNames)
+    
+    for _, btn in pairs(buttons) do
+        btn:Destroy()
+    end
+    buttons = {}
+    
+    if #typeNames == 0 then
+        if autoRefreshEnabled then
+            statusLabel.Text = "未找到任何 Tool 物品，等待刷新..."
+        end
+        scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+        selectedType = nil
+        return false
+    end
+    
+    for _, typeName in pairs(typeNames) do
+        local count = #toolList[typeName]
+        
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, -10, 0, 35)
+        btn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+        btn.Text = typeName .. " (" .. count .. "个)"
+        btn.TextColor3 = Color3.new(1, 1, 1)
+        btn.Font = Enum.Font.Gotham
+        btn.TextSize = 14
+        btn.Parent = scrollFrame
+        
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(0, 4)
+        btnCorner.Parent = btn
+        
+        btn.MouseButton1Click:Connect(function()
+            selectedType = typeName
+            for _, b in pairs(buttons) do
+                b.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+            end
+            btn.BackgroundColor3 = Color3.fromRGB(70, 130, 200)
+            statusLabel.Text = "已选中: " .. typeName
+        end)
+        
+        if typeName == previousSelected then
+            selectedType = typeName
+            btn.BackgroundColor3 = Color3.fromRGB(70, 130, 200)
+        end
+        
+        table.insert(buttons, btn)
+    end
+    
+    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, #typeNames * 40)
+    if autoRefreshEnabled then
+        if selectedType then
+            statusLabel.Text = "已找到 " .. #typeNames .. " 种物品，已选中: " .. selectedType
+        else
+            statusLabel.Text = "已找到 " .. #typeNames .. " 种物品"
+        end
+    end
+    return true
+end
+
+function startRefreshLoop()
+    if refreshLoopConnection then
+        task.cancel(refreshLoopConnection)
+        refreshLoopConnection = nil
+    end
+    
+    refreshLoopConnection = task.spawn(function()
+        while screenGui and screenGui.Parent and autoRefreshEnabled do
+            refreshToolList()
+            task.wait(2)
+        end
+    end)
+end
+
+local function teleportToolToFace(tool, facePos)
+    for _, part in pairs(tool:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.Anchored = false
+            part.CanCollide = false
+        end
+    end
+    
+    local handle = tool:FindFirstChild("Handle")
+    if handle and handle:IsA("BasePart") then
+        handle.CFrame = facePos
+        handle.Velocity = Vector3.new(0, 5, 0)
+    else
+        for _, part in pairs(tool:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CFrame = facePos
+                part.Velocity = Vector3.new(0, 5, 0)
+                break
+            end
+        end
+    end
+    
+    task.wait(0.1)
+    
+    for _, part in pairs(tool:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.CanCollide = true
+        end
+    end
+end
+
+function teleportAllTools()
+    local currentMapFolder = workspace:FindFirstChild("Map")
+    if not currentMapFolder then
+        statusLabel.Text = "未找到 workspace.Map"
+        return
+    end
+    
+    local allTools = {}
+    for _, item in pairs(currentMapFolder:GetDescendants()) do
+        if item:IsA("Tool") and item.Parent then
+            table.insert(allTools, item)
+        end
+    end
+    
+    if #allTools == 0 then
+        statusLabel.Text = "没有找到任何物品可传送"
+        return
+    end
+    
+    local character = player.Character
+    if not character then
+        statusLabel.Text = "等待角色加载..."
+        return
+    end
+    
+    local head = character:FindFirstChild("Head")
+    if not head then
+        statusLabel.Text = "角色未就绪"
+        return
+    end
+    
+    statusLabel.Text = string.format("正在传送 %d 个物品...", #allTools)
+    local facePos = head.CFrame * CFrame.new(0, -1, 2.5)
+    local teleported = 0
+    
+    for _, tool in pairs(allTools) do
+        if tool and tool.Parent then
+            pcall(function()
+                teleportToolToFace(tool, facePos)
+                teleported = teleported + 1
+                task.wait(0.1)
+            end)
+        end
+    end
+    
+    statusLabel.Text = string.format("一键传送完成！共传送 %d 个物品", teleported)
+    print(string.format("一键传送完成！共传送 %d 个物品", teleported))
+    
+    task.wait(0.5)
+    refreshToolList()
+end
+
+teleportBtn.MouseButton1Click:Connect(function()
+    if not selectedType then
+        statusLabel.Text = "请先选择一个物品类型"
+        return
+    end
+    
+    local items = toolList[selectedType]
+    if not items or #items == 0 then
+        refreshToolList()
+        items = toolList[selectedType]
+        if not items or #items == 0 then
+            statusLabel.Text = "选中的物品已不存在，请重新选择"
+            selectedType = nil
+            return
+        end
+    end
+    
+    local character = player.Character
+    if not character then
+        statusLabel.Text = "等待角色加载..."
+        return
+    end
+    
+    local head = character:FindFirstChild("Head")
+    if not head then
+        statusLabel.Text = "角色未就绪"
+        return
+    end
+    
+    local facePos = head.CFrame * CFrame.new(0, -1, 2.5)
+    
+    local amountStr = amountInput.Text
+    local amountToTake = #items
+    if amountStr ~= "全部" and tonumber(amountStr) then
+        amountToTake = math.min(tonumber(amountStr), #items)
+    end
+    
+    local teleported = 0
+    
+    for i = 1, amountToTake do
+        local tool = items[i]
+        if tool and tool.Parent then
+            pcall(function()
+                teleportToolToFace(tool, facePos)
+                teleported = teleported + 1
+                task.wait(0.1)
+            end)
+        end
+    end
+    
+    statusLabel.Text = string.format("已将 %d 个 %s 传送到脸上", teleported, selectedType)
+    print(string.format("已将 %d 个 %s 传送到脸上", teleported, selectedType))
+    
+    task.wait(0.5)
+    refreshToolList()
+end)
+
+teleportAllBtn.MouseButton1Click:Connect(function()
+    teleportAllTools()
+end)
+
+refreshBtn.MouseButton1Click:Connect(function()
+    refreshToolList()
+    if selectedType then
+        statusLabel.Text = "已手动刷新，已选中: " .. selectedType
+    else
+        statusLabel.Text = "已手动刷新，找到 " .. #buttons .. " 种物品"
+    end
+end)
+
+startRefreshLoop()
+
+print("兽化逃亡物品传送 | 空白制作")
+print("窗口可通过标题栏拖动，支持最小化")
+print("刷新后会自动保持之前选中的物品类型")
