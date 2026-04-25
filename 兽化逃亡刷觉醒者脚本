@@ -1,0 +1,205 @@
+local CONFIG = {
+    ElevatorPosition = Vector3.new(-7712.548, 1468.536, 3.701),
+    WaitAfterEvent = 20,
+    TargetPosition = Vector3.new(-7624.936, 995.804, -134.774),
+    TeamCheckTime = 50,
+    Cooldown = 47,
+    TargetTeam = "Infected",
+}
+
+local scriptRunning = true
+
+local function GetCharacter()
+    local player = game.Players.LocalPlayer
+    return player and player.Character
+end
+
+local function GetRootPart()
+    local char = GetCharacter()
+    if char then
+        return char:FindFirstChild("HumanoidRootPart")
+    end
+    return nil
+end
+
+local function IsInfectedTeam()
+    local player = game.Players.LocalPlayer
+    if player and player.Team then
+        local teamName = player.Team.Name
+        return teamName == CONFIG.TargetTeam
+    end
+    return false
+end
+
+local function TeleportToPosition(position, posName)
+    local rootPart = GetRootPart()
+    if rootPart then
+        rootPart.CFrame = CFrame.new(position)
+        local name = posName or ""
+        print("已传送到" .. name .. ": " .. tostring(position))
+        return true
+    else
+        warn("传送失败：找不到HumanoidRootPart")
+        return false
+    end
+end
+
+local function FireGameEvent()
+    local success, err = pcall(function()
+        local replicatedStorage = game:GetService("ReplicatedStorage")
+        local gameEvent = replicatedStorage:WaitForChild("GameEvent")
+        local args = {"Ready"}
+        gameEvent:FireServer(unpack(args))
+        print("已触发GameEvent，参数: Ready")
+    end)
+    
+    if not success then
+        warn("触发失败: " .. tostring(err))
+    end
+    return success
+end
+
+local function WaitForTeam()
+    print("")
+    print("[队伍检测] 开始监控... 50秒内检测是否加入 " .. CONFIG.TargetTeam .. " 队伍")
+    print("[队伍检测] 检测方式: LocalPlayer.Team.Name")
+    print("[队伍检测] 倒计时开始！")
+    
+    local startTime = tick()
+    local player = game.Players.LocalPlayer
+    
+    local currentTeam = player.Team and player.Team.Name or "无队伍"
+    print("[队伍检测] 初始队伍: " .. currentTeam)
+    
+    while tick() - startTime < CONFIG.TeamCheckTime do
+        task.wait(0.3)
+        
+        if IsInfectedTeam() then
+            local elapsed = math.floor(tick() - startTime)
+            print("[队伍检测] ✓ 已加入 " .. CONFIG.TargetTeam .. " 队伍")
+            print("[队伍检测] 加入时间: " .. elapsed .. "秒")
+            return true
+        end
+        
+        local elapsed = math.floor(tick() - startTime)
+        if elapsed % 5 == 0 and elapsed > 0 then
+            local currentTeamName = player.Team and player.Team.Name or "无队伍"
+            print("[队伍检测] 监控中... " .. elapsed .. "秒 / " .. CONFIG.TeamCheckTime .. "秒 | 当前队伍: " .. currentTeamName)
+        end
+    end
+    
+    print("[队伍检测] ✗ 50秒内未加入 " .. CONFIG.TargetTeam .. " 队伍！")
+    return false
+end
+
+local function WaitCooldown()
+    print("")
+    print("冷却阶段: " .. CONFIG.Cooldown .. " 秒")
+    
+    for i = CONFIG.Cooldown, 1, -1 do
+        if i % 10 == 0 or i <= 5 then
+            print("冷却剩余: " .. i .. " 秒")
+        end
+        task.wait(1)
+    end
+    
+    print("冷却结束，开始新一轮")
+    print("")
+end
+
+local function StopAll()
+    scriptRunning = false
+    print("")
+    print("==========================================")
+    print("  脚本已彻底停止")
+    print("==========================================")
+    print("原因: 传送第二坐标后50秒内未加入 " .. CONFIG.TargetTeam .. " 队伍")
+    print("==========================================")
+    print("")
+end
+
+local function Main()
+    local player = game.Players.LocalPlayer
+    
+    print("")
+    print("==========================================")
+    print("       觉醒者自动化脚本 v17.0")
+    print("    队伍检测版 | 传送后开启检测")
+    print("==========================================")
+    print("")
+    
+    print("等待角色加载...")
+    repeat
+        task.wait(0.5)
+        if not scriptRunning then return end
+    until player.Character and player.Character:FindFirstChild("Humanoid") and 
+          player.Character:FindFirstChild("HumanoidRootPart")
+    
+    print("角色已就绪")
+    print("电梯坐标: " .. tostring(CONFIG.ElevatorPosition))
+    print("传送坐标: " .. tostring(CONFIG.TargetPosition))
+    print("目标队伍: " .. CONFIG.TargetTeam)
+    print("")
+    print("规则: 传送电梯 -> 触发事件 -> 等待20秒 -> 传送目标坐标 -> 开启50秒队伍检测")
+    print("  - 如果50秒内加入 " .. CONFIG.TargetTeam .. ": 冷却47秒 -> 继续循环")
+    print("  - 如果50秒内未加入: 彻底停止脚本")
+    print("")
+    
+    local cycleCount = 0
+    
+    while scriptRunning do
+        cycleCount = cycleCount + 1
+        print("========== 开始第 " .. cycleCount .. " 轮循环 ==========")
+        
+        if not scriptRunning then break end
+        
+        print("[1/4] 传送电梯...")
+        TeleportToPosition(CONFIG.ElevatorPosition, "电梯")
+        task.wait(0.5)
+        
+        print("[2/4] 触发GameEvent...")
+        FireGameEvent()
+        
+        print("[3/4] 等待20秒...")
+        for i = 20, 1, -1 do
+            if not scriptRunning then return end
+            if i % 5 == 0 or i <= 3 then
+                print("   剩余: " .. i .. " 秒")
+            end
+            task.wait(1)
+        end
+        print("等待完成")
+        
+        print("[4/4] 传送目标坐标（开启队伍检测）...")
+        TeleportToPosition(CONFIG.TargetPosition, "目标坐标")
+        task.wait(1)
+        
+        print("")
+        print("========== 开始队伍检测（50秒倒计时）==========")
+        local teamSuccess = WaitForTeam()
+        
+        if not teamSuccess then
+            StopAll()
+            return
+        end
+        
+        print("")
+        print("==========================================")
+        print("  ✓ 已加入 " .. CONFIG.TargetTeam .. " 队伍，开始冷却")
+        print("==========================================")
+        WaitCooldown()
+    end
+end
+
+print("正在启动队伍检测版脚本...")
+print("检测方式: game.Players.LocalPlayer.Team.Name")
+print("检测时机: 传送第二坐标后立即开始")
+
+local success, err = pcall(Main)
+
+if not success then
+    print("")
+    print("脚本异常停止: " .. tostring(err))
+end
+
+print("脚本执行完毕")
